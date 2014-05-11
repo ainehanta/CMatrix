@@ -15,5 +15,6 @@ Matrix* matrixCalcMul(const Matrix* const matrixA,const Matrix* const matrixB);
 Matrix* matrixCalcScalaMul(const double value,const Matrix* const matrix);
 double matrixCalcDeterminant(const Matrix* const matrix);
 Matrix* matrixGetInverse(const Matrix* const matrix);
+void matrixPrint(const Matrix* const matrix);
 
 #endif
