@@ -13,7 +13,7 @@
 #define __DEXE 1 ? (void) 0 :
 #endif
 
-//現状正方行列以外は逆行列・行列式は考慮しない
+//現状擬似逆行列とかは知らん
 
 Matrix* matrixInit(int x,int y)
 {
@@ -91,14 +91,14 @@ Matrix* matrixCalcMul(const Matrix* const matrixA,const Matrix* const matrixB)
 
   double tmp;
 
-  if(matrixA->y != matrixB->x ||
+  if(matrixA->x != matrixB->y ||
       matrixA == NULL ||
       matrixB == NULL)
   {
     return NULL;
   }
 
-  matrixResult = matrixInit(matrixA->y,matrixB->x);
+  matrixResult = matrixInit(matrixB->x,matrixA->y);
 
   if(matrixResult == NULL)
     return NULL;
@@ -107,8 +107,9 @@ Matrix* matrixCalcMul(const Matrix* const matrixA,const Matrix* const matrixB)
   data_a = matrixA->data;
   data_b = matrixB->data;
 
-  for(result_y=0;result_y<matrixA->y;result_y++) {
-    for(result_x=0;result_x<matrixB->x;result_x++) {
+  for(result_y=0;result_y<matrixResult->y;result_y++) {
+    tmp = 0;
+    for(result_x=0;result_x<matrixResult->x;result_x++) {
       tmp = 0;
       for(tmp_pos=0;tmp_pos<matrixA->x;tmp_pos++) {
         tmp += data_a[result_y][tmp_pos] * data_b[tmp_pos][result_x];
@@ -205,14 +206,56 @@ double matrixCalcDeterminant(const Matrix* const matrix)
 
 Matrix* matrixGetInverse(const Matrix* const matrix)
 {
-  Matrix* matrixResult;
+  Matrix* matrixInv;
+  double** data;
+  double** dataInv;
+
+  int x,y,z;
+  double buf;
 
   if(matrix == NULL)
     return NULL;
 
-  matrixResult = matrixInit(matrix->x,matrix->y);
+  matrixInv = matrixInit(matrix->x,matrix->y);
 
-  return matrixResult;
+  if(matrixInv == NULL) {
+    return NULL;
+  }
+
+  data = matrix->data;
+  dataInv = matrixInv->data;
+
+  //単位行列を作成する
+  for(y=0;y<matrix->y;y++) {
+    for(x=0;x<matrix->x;x++) {
+      //斜めのところに1、それ以外0
+      if(y == x) {
+        dataInv[y][x] = 1.0;
+      } else {
+        dataInv[y][x] = 0;
+      }
+    }
+  }
+
+  //掃き出し法で逆行列を求める
+  for(y=0;y<matrix->y;y++) {
+    buf = 1 / data[y][y];
+    for(x=0;x<matrix->x;x++) {
+      data[y][x] *= buf;
+      dataInv[y][x] *= buf;
+    }
+    for(x=0;x<matrix->x;x++) {
+      if(y != x) {
+        buf = data[x][y];
+        for(z=0;z<matrix->x;z++) {
+          data[x][z] -= data[y][z] * buf;
+          dataInv[x][z] -= dataInv[y][z] * buf;
+        }
+      }
+    }
+  }
+
+  return matrixInv;
 }
 
 void matrixPrint(const Matrix* const matrix)

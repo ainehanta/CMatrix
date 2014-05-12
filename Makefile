@@ -16,4 +16,4 @@ matrix.c : matrix.h
 	$(CC) $(CFLAGS) -c $<
 
 clean :
-	rm -f *.o $(TARGET)
+	rm -f $(OBJS) $(TARGET)
